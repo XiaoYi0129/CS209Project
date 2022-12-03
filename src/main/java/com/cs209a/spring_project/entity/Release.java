@@ -1,13 +1,13 @@
-package com.example.springproject;
+package com.cs209a.spring_project.entity;
 
 import java.util.Date;
 
 public class Release {
-  int id;
+  public int id;
 
-  String name;
+  public String name;
 
-  Date create_time;
+  public Date create_time;
 
   @Override
   public String toString() {

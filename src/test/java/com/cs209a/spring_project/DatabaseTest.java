@@ -1,7 +1,6 @@
-package com.example.springproject;
+package com.cs209a.spring_project;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import com.cs209a.spring_project.entity.Release;
 import java.util.List;
 import javax.sql.DataSource;
 import org.junit.Test;
@@ -9,7 +8,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @SpringBootTest

@@ -1,4 +1,4 @@
-package com.example.springproject.domain;
+package com.cs209a.spring_project.domain;
 
 public class Repo {
     String name;

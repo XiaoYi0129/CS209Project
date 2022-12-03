@@ -1,4 +1,4 @@
-package com.example.springproject;
+package com.cs209a.spring_project;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

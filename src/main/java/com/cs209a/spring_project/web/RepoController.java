@@ -1,7 +1,7 @@
-package com.example.springproject.web;
+package com.cs209a.spring_project.web;
 
-import com.example.springproject.domain.Repo;
-import com.example.springproject.service.RepoService;
+import com.cs209a.spring_project.domain.Repo;
+import com.cs209a.spring_project.service.RepoService;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,4 +1,4 @@
-package com.example.springproject;
+package com.cs209a.spring_project;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
