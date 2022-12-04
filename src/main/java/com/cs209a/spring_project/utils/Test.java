@@ -1,18 +1,21 @@
-package com.cs209a.spring_project;
+package com.cs209a.spring_project.utils;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.cs209a.spring_project.utils.Crawler;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 
 public class Test {
 
-  public static void main(String[] args) {
-
-    getReleaseNum("spring-projects", "spring-framework");
+  public static void main(String[] args) throws SQLException {
+//      Crawler crawler = new Crawler();
+//    System.out.println(Crawler.dataSource.getConnection());
+//    getReleaseNum("spring-projects", "spring-framework");
 //    getCommitNum("spring-projects", "spring-framework");
   }
 

@@ -1,6 +1,7 @@
 package com.cs209a.spring_project;
 
 import com.cs209a.spring_project.entity.Release;
+import java.util.Date;
 import java.util.List;
 import javax.sql.DataSource;
 import org.junit.Test;
@@ -22,18 +23,18 @@ public class DatabaseTest {
   public void contextLoads() throws Exception{
     System.out.println(dataSource.getConnection());
 
-    String sql = "select * from release_test";
-    List<Release> releaseList = jdbcTemplate.query(sql, (rs, rowNum) -> {
-      Release release = new Release();
-      release.id = rs.getInt("id");
-      release.name = rs.getString("name");
-      release.create_time = rs.getTimestamp("create_time");
-      return release;
-    });
-
-    for (Release release: releaseList) {
-      System.out.println(release);
-    }
+//    String sql = "select * from release_test";
+//    List<Release> releaseList = jdbcTemplate.query(sql, (rs, rowNum) -> {
+//      int id = rs.getInt("id");
+//      String name = rs.getString("name");
+//      Date created_time = rs.getTimestamp("create_time");
+//      Release release = new Release(id, name, created_time);
+//      return release;
+//    });
+//
+//    for (Release release: releaseList) {
+//      System.out.println(release);
+//    }
 
   }
 }
