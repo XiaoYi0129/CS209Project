@@ -18,8 +18,7 @@ public class SpringProjectApplication implements ApplicationRunner {
 
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
-		crawler.initDatabase();
-
-
+		//		crawler.initDatabase();
+		crawler.getRepoData();
 	}
 }

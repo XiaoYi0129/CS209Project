@@ -16,7 +16,7 @@ public class RestAPI {
     try {
       StringBuilder json = new StringBuilder();
 
-      String s = "https://api.github.com/repos/alibaba/fastjson/contributors?page=2&per_page=100";
+      String s = "https://api.github.com/repos/alibaba/fastjson/contributors?page=1&per_page=100";
       URL url = new URL(s);
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
       conn.setRequestMethod("GET");
@@ -34,6 +34,9 @@ public class RestAPI {
       while ((inputLine = in.readLine()) != null) {
         json.append(inputLine);
 
+      }
+      if (json.toString().equals("[]")) {
+        System.out.println("null");
       }
       //关闭输入流
       in.close();

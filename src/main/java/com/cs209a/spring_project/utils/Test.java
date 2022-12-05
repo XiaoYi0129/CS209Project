@@ -2,7 +2,6 @@ package com.cs209a.spring_project.utils;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.cs209a.spring_project.utils.Crawler;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -13,15 +12,21 @@ import java.sql.SQLException;
 public class Test {
 
   public static void main(String[] args) throws SQLException {
-//      Crawler crawler = new Crawler();
-//    System.out.println(Crawler.dataSource.getConnection());
-//    getReleaseNum("spring-projects", "spring-framework");
-//    getCommitNum("spring-projects", "spring-framework");
+
+//    String s = "2022-11-29T12:51:34Z";
+//    System.out.println(s.replaceAll("T|Z", " "));
+
+    String[] url = "https://api.github.com/repos/spring-projects/spring-framework/releases/84106161".substring(
+        29).split("/");
+
+    String repo = url[0] + "/" + url[1];
+    System.out.println(repo);
   }
 
   public static void getReleaseNum(String owner, String repo) {
     String data = "";
-    String url = String.format("https://api.github.com/repos/%s/%s/releases/per_page/100", owner, repo);
+    String url = String.format("https://api.github.com/repos/%s/%s/releases/per_page/100", owner,
+        repo);
     url = "https://api.github.com/repos/spring-projects/spring-framework/releases?per_page=100&page=1";
     try {
       URL restUrl = new URL(url);
@@ -29,10 +34,10 @@ public class Test {
       connection.setRequestMethod("GET");
       connection.setDoOutput(true);
 
-
       int responseCode = connection.getResponseCode();
       if (responseCode == 200) {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
+        BufferedReader reader = new BufferedReader(
+            new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
         data = reader.readLine();
       }
 
@@ -63,7 +68,8 @@ public class Test {
 
       int responseCode = connection.getResponseCode();
       if (responseCode == 200) {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
+        BufferedReader reader = new BufferedReader(
+            new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
         data = reader.readLine();
       }
 
