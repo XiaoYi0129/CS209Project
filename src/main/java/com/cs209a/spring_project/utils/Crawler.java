@@ -13,7 +13,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class Crawler {
-  //github api似乎限制访问次数60次/小时，要找小一点的库
+
+  //github api似乎限制访问次数60次/小时，要找小一点的库或者分几次跑
   static String GITHUB_API = "https://api.github.com/repos/%s/%s?page=%d&per_page=100";
   static String[] REPO_LIST = {"jhy/jsoup", "junit-team/junit5"};
   static String[] REQUEST_LIST = {"contributors", "releases", "commits"};
@@ -25,10 +26,47 @@ public class Crawler {
    */
   public void initDatabase() {
     jdbcTemplate.execute("CREATE DATABASE IF NOT EXISTS CS209A;");
-    jdbcTemplate.execute(
-        "CREATE TABLE IF NOT EXISTS contributor(id int unsigned not null, name varchar(50) not null, contribution int unsigned not null, repository varchar(80) not null, primary key (repository, id));");
-    //其他建表语句
-    //    jdbcTemplate.execute();
+    jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS `repository`("
+        + "    `name` varchar(80) not null,"
+        + "    `contributor` int unsigned not null,"
+        + "    `contributions` int unsigned not null,"
+        + "    primary key (`name`, `contributor`)"
+        + ");");
+    jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS `developer`("
+        + "    `id` int unsigned not null,"
+        + "    `name` varchar(50) not null,"
+        + "    primary key (id)\n"
+        + ");");
+    jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS `issue`("
+        + "    `id` int unsigned not null,"
+        + "    `state` varchar(10) not null,"
+        + "    `created_time` datetime not null,"
+        + "    `closed_time` datetime not null,"
+        + "    `title` varchar(150) not null,"
+        + "    `body` varchar(500) not null,"
+        + "    `repository` varchar(80) not null,"
+        + "    primary key (id)"
+        + ");");
+    jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS `comment`("
+        + "    `id` int unsigned not null,"
+        + "    `user` int unsigned not null,"
+        + "    `issue` int unsigned not null,"
+        + "    `body` varchar(500) not null,"
+        + "    primary key (id)"
+        + ");");
+    jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS `release`("
+        + "    `id` int unsigned not null,"
+        + "    `name` varchar(30) not null,"
+        + "    `created_time` datetime not null,"
+        + "    `repository` varchar(80) not null,"
+        + "    primary key (id)"
+        + ");");
+    jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS `commit`("
+        + "    `id` varchar(50) not null,"
+        + "    `date` datetime,"
+        + "    primary key (id)"
+        + ");");
+
   }
 
   public void getRepoData() {
@@ -41,7 +79,7 @@ public class Crawler {
     System.out.println("data collection done!");
   }
 
-  private void getData(String repoName, String request) {
+  public void getData(String repoName, String request) {
     int i = 1;
     String data;
 
@@ -58,17 +96,11 @@ public class Crawler {
               new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
           data = reader.readLine();
           // data为空结束循环
-          if (data.equals("[]") ) {
-//            System.out.printf("get %s %s done\n", repoName, request);
+          if (data.equals("[]")) {
             break;
           }
 
-          if (data.length() < 10) {
-            System.out.println("data: "+ data);
-          }
-
-          System.out.println("parsing json...");
-
+          System.out.println("parsing json of page " + i + "...");
           JSONArray jsonArray = JSONArray.parseArray(data);
           for (Object object : jsonArray) {
             JSONObject jsonObject = (JSONObject) object;
@@ -90,7 +122,7 @@ public class Crawler {
 
 
         } else {
-          System.out.println("Network issue: "+ responseCode);
+          System.out.println("Network issue: " + responseCode);
           break;
         }
 
@@ -110,7 +142,8 @@ public class Crawler {
         String.format("INSERT INTO `developer` VALUES (%d, '%s') ON DUPLICATE KEY UPDATE id = id;",
             id, name));
     jdbcTemplate.execute(
-        String.format("REPLACE INTO repository VALUES ('%s', %d, %d);", repoName, id, contributions));
+        String.format("REPLACE INTO repository VALUES ('%s', %d, %d);", repoName, id,
+            contributions));
   }
 
   private void handleIssues(JSONObject jsonObject) {
