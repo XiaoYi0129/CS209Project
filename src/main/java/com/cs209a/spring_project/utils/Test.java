@@ -38,7 +38,7 @@ public class Test {
       connection.setDoOutput(true);
 
       int responseCode = connection.getResponseCode();
-      if (responseCode == 200) {
+      if (responseCode  == 200) {
         BufferedReader reader = new BufferedReader(
             new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
         data = reader.readLine();

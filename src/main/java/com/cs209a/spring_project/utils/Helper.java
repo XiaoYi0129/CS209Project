@@ -3,7 +3,10 @@ package com.cs209a.spring_project.utils;
 public class Helper {
 
   public static String formatTime(String timeData) {
-    return formatString(timeData.replaceAll("T|Z", " "));
+    if (timeData == null) {
+      return null;
+    }
+    return formatString(timeData.replaceAll("T|Z", " ").replaceAll("'", "\\'"));
   }
 
   public static String getRepo(String url) {
@@ -15,7 +18,7 @@ public class Helper {
     if (string == null) {
       return null;
     }
-    return "'" + string.replaceAll("\r|\n", "") + "'";
+    return "'" + string.replaceAll("\r|\n", "").replaceAll("'", "\\'") + "'";
   }
 
 }

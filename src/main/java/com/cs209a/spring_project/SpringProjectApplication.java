@@ -24,7 +24,10 @@ public class SpringProjectApplication implements ApplicationRunner {
 			System.out.println("initializing database...");
 //			crawler.initDatabase();
 //			crawler.addRepoData();
-			crawler.addData(Crawler.REPO_LIST[1], Crawler.REQUEST_LIST[2]);
+			String repoName = Crawler.REPO_LIST[0];
+			String request = Crawler.REQUEST_LIST[3];
+			System.out.printf("getting %s %s\n", repoName, request);
+			crawler.addData(repoName, request);
 			System.out.println("data collection done!");
 		}
 

@@ -16,8 +16,9 @@ public class Crawler {
 
   //github api似乎限制访问次数60次/小时，要找小一点的库或者分几次跑
   public static String GITHUB_API = "https://api.github.com/repos/%s/%s?page=%d&per_page=100";
-  public static String[] REPO_LIST = {"jhy/jsoup", "junit-team/junit5"};
+  public static String[] REPO_LIST = {"jhy/jsoup", "rubenlagus/TelegramBots"};
   public static String[] REQUEST_LIST = {"contributors", "releases", "commits", "issues"};
+  String TOKEN = "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";
   @Autowired
   JdbcTemplate jdbcTemplate;
 
@@ -79,13 +80,14 @@ public class Crawler {
   }
 
   public void addData(String repoName, String request) {
-    int i = 1;
+    int i = 0;
     String data;
 
     while (true) {
       try {
-        URL url = new URL(String.format(GITHUB_API, repoName, request, i++));
+        URL url = new URL(String.format(GITHUB_API, repoName, request, ++i));
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestProperty("Authorization", TOKEN);
         conn.setRequestMethod("GET");
         conn.connect();
         int responseCode = conn.getResponseCode();
@@ -99,7 +101,7 @@ public class Crawler {
             break;
           }
 
-          System.out.println("parsing json of page " + (i - 1) + "...");
+          System.out.println("parsing json of page " + i+ "...");
           JSONArray jsonArray = JSONArray.parseArray(data);
           for (Object object : jsonArray) {
             JSONObject jsonObject = (JSONObject) object;
@@ -190,7 +192,6 @@ public class Crawler {
   }
 
   private void handleIssues(JSONObject jsonObject) {
-    //比较难搞，最后再写
     String repo = Helper.getRepo((String) jsonObject.get("url"));
     Integer id = (Integer) jsonObject.get("id");
     String title = Helper.formatString((String) jsonObject.get("title"));
@@ -198,14 +199,14 @@ public class Crawler {
     String createdTime = Helper.formatTime((String) jsonObject.get("created_at"));
     String closedTime = Helper.formatTime((String) jsonObject.get("closed_at"));
     String body = Helper.formatString((String) jsonObject.get("body"));
+    System.out.println(body.length());
 
     jdbcTemplate.execute(
-        String.format("REPLACE INTO issue VALUES (%d, %s, %s, %s, %s, %s, %s);", id, state,
+        String.format("REPLACE INTO issue VALUES (%d, %s, %s, %s, %s, %s, '%s');", id, state,
             createdTime, closedTime, title, body, repo));
 
     String commentsUrl = (String) jsonObject.get("comments_url");
     addComments(commentsUrl, id);
-
   }
 
   private void handleReleases(JSONObject jsonObject) {
@@ -215,7 +216,7 @@ public class Crawler {
     String repo = Helper.getRepo((String) jsonObject.get("url"));
 
     jdbcTemplate.execute(String.format(
-        "REPLACE INTO `release` VALUES (%d, '%s', '%s', '%s');", id,
+        "REPLACE INTO `release` VALUES (%d, '%s', %s, '%s');", id,
         name, time, repo));
   }
 
