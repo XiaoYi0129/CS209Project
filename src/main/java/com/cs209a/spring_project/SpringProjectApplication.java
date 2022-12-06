@@ -11,7 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class SpringProjectApplication implements ApplicationRunner {
 	@Autowired
 	Crawler crawler;
-	boolean update = false;
+	boolean update = true;
 	public static void main(String[] args) {
 		SpringApplication.run(SpringProjectApplication.class, args);
 	}
@@ -22,9 +22,10 @@ public class SpringProjectApplication implements ApplicationRunner {
 
 		if (update) {
 			System.out.println("initializing database...");
-			crawler.initDatabase();
+//			crawler.initDatabase();
 //			crawler.addRepoData();
-			crawler.addData(Crawler.REPO_LIST[0], Crawler.REQUEST_LIST[2]);
+			crawler.addData(Crawler.REPO_LIST[1], Crawler.REQUEST_LIST[2]);
+			System.out.println("data collection done!");
 		}
 
 	}

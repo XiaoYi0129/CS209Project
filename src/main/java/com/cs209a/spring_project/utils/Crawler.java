@@ -17,7 +17,7 @@ public class Crawler {
   //github api似乎限制访问次数60次/小时，要找小一点的库或者分几次跑
   public static String GITHUB_API = "https://api.github.com/repos/%s/%s?page=%d&per_page=100";
   public static String[] REPO_LIST = {"jhy/jsoup", "junit-team/junit5"};
-  public static String[] REQUEST_LIST = {"contributors", "releases", "commits"};
+  public static String[] REQUEST_LIST = {"contributors", "releases", "commits", "issues"};
   @Autowired
   JdbcTemplate jdbcTemplate;
 
@@ -76,7 +76,6 @@ public class Crawler {
         addData(repoName, request);
       }
     }
-    System.out.println("data collection done!");
   }
 
   public void addData(String repoName, String request) {
@@ -100,7 +99,7 @@ public class Crawler {
             break;
           }
 
-          System.out.println("parsing json of page " + i + "...");
+          System.out.println("parsing json of page " + (i - 1) + "...");
           JSONArray jsonArray = JSONArray.parseArray(data);
           for (Object object : jsonArray) {
             JSONObject jsonObject = (JSONObject) object;
@@ -229,7 +228,7 @@ public class Crawler {
     String date = Helper.formatTime((String) author.get("date"));
     // 执行插入语句
     jdbcTemplate.execute(
-        String.format("REPLACE INTO `commit` VALUES ('%s', '%s', %s);",
+        String.format("REPLACE INTO `commit` VALUES ('%s', %s, '%s');",
             sha, date, repo));
   }
 
