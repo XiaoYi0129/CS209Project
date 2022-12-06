@@ -9,17 +9,22 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class SpringProjectApplication implements ApplicationRunner {
-
 	@Autowired
 	Crawler crawler;
+	boolean update = false;
 	public static void main(String[] args) {
 		SpringApplication.run(SpringProjectApplication.class, args);
 	}
 
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
-		System.out.println("initializing database...");
-		crawler.initDatabase();
-//		crawler.getRepoData();
+//		crawler.Test();
+
+		if (update) {
+			System.out.println("initializing database...");
+			crawler.initDatabase();
+			crawler.addRepoData();
+		}
+
 	}
 }

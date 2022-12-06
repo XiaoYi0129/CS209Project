@@ -20,7 +20,10 @@ public class Test {
         29).split("/");
 
     String repo = url[0] + "/" + url[1];
-    System.out.println(repo);
+
+    String str = "ddf\r\n\r\nddd";
+
+    System.out.println(Helper.formatString(str));
   }
 
   public static void getReleaseNum(String owner, String repo) {
