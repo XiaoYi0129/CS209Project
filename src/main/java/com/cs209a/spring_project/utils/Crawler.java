@@ -15,9 +15,9 @@ import org.springframework.stereotype.Component;
 public class Crawler {
 
   //github api似乎限制访问次数60次/小时，要找小一点的库或者分几次跑
-  static String GITHUB_API = "https://api.github.com/repos/%s/%s?page=%d&per_page=100";
-  static String[] REPO_LIST = {"jhy/jsoup", "junit-team/junit5"};
-  static String[] REQUEST_LIST = {"contributors", "releases", "commits"};
+  public static String GITHUB_API = "https://api.github.com/repos/%s/%s?page=%d&per_page=100";
+  public static String[] REPO_LIST = {"jhy/jsoup", "junit-team/junit5"};
+  public static String[] REQUEST_LIST = {"contributors", "releases", "commits"};
   @Autowired
   JdbcTemplate jdbcTemplate;
 
@@ -222,14 +222,15 @@ public class Crawler {
 
   private void handleCommits(JSONObject jsonObject) {
     String sha = (String) jsonObject.get("sha");
+    String repo = Helper.getRepo((String) jsonObject.get("url"));
     //获取date
     JSONObject commit = (JSONObject) jsonObject.get("commit");
     JSONObject author = (JSONObject) commit.get("author");
     String date = Helper.formatTime((String) author.get("date"));
     // 执行插入语句
     jdbcTemplate.execute(
-        String.format("REPLACE INTO `commit` VALUES ('%s', '%s');",
-            sha, date));
+        String.format("REPLACE INTO `commit` VALUES ('%s', '%s', %s);",
+            sha, date, repo));
   }
 
   public void Test() {
