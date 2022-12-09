@@ -10,6 +10,7 @@ public class ContributorDao{
   JdbcTemplate jdbcTemplate;
 
   public int getContributorCount(String repoName) {
+//    int count = jdbcTemplate.query();
 
     return 0;
   }

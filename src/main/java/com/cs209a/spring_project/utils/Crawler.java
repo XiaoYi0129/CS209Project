@@ -14,11 +14,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class Crawler {
 
-  //github api似乎限制访问次数60次/小时，要找小一点的库或者分几次跑
   public static String GITHUB_API = "https://api.github.com/repos/%s/%s?page=%d&per_page=100";
   public static String[] REPO_LIST = {"jhy/jsoup", "rubenlagus/TelegramBots"};
   public static String[] REQUEST_LIST = {"contributors", "releases", "commits", "issues"};
-
   @Autowired
   JdbcTemplate jdbcTemplate;
 

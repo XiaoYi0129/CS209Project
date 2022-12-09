@@ -81,4 +81,10 @@ public class RepoController {
         return arrayList;
     }
 
+    @GetMapping("/repoInfo")
+    public Repo getRepoInfo() {
+        Repo repo = new Repo();
+        return repo;
+    }
+
 }
