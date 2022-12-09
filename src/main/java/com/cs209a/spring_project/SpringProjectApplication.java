@@ -15,16 +15,14 @@ public class SpringProjectApplication implements ApplicationRunner {
 	public static void main(String[] args) {
 		SpringApplication.run(SpringProjectApplication.class, args);
 	}
-
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
 //		crawler.Test();
-
 		if (update) {
 			System.out.println("initializing database...");
 //			crawler.initDatabase();
 //			crawler.addRepoData();
-			String repoName = Crawler.REPO_LIST[0];
+			String repoName = Crawler.REPO_LIST[1];
 			String request = Crawler.REQUEST_LIST[3];
 			System.out.printf("getting %s %s\n", repoName, request);
 			crawler.addData(repoName, request);

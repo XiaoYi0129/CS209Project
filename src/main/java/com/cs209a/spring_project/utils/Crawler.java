@@ -5,10 +5,10 @@ import com.alibaba.fastjson.JSONObject;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,7 +18,7 @@ public class Crawler {
   public static String GITHUB_API = "https://api.github.com/repos/%s/%s?page=%d&per_page=100";
   public static String[] REPO_LIST = {"jhy/jsoup", "rubenlagus/TelegramBots"};
   public static String[] REQUEST_LIST = {"contributors", "releases", "commits", "issues"};
-  String TOKEN = "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";
+
   @Autowired
   JdbcTemplate jdbcTemplate;
 
@@ -85,10 +85,12 @@ public class Crawler {
 
     while (true) {
       try {
-        URL url = new URL(String.format(GITHUB_API, repoName, request, ++i));
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestProperty("Authorization", TOKEN);
-        conn.setRequestMethod("GET");
+        String urlString = String.format(GITHUB_API, repoName, request, ++i);
+        if (request.equals("issues")) {
+          urlString += "&state=all";
+        }
+        HttpURLConnection conn = Helper.getConnection(urlString);
+        assert conn != null;
         conn.connect();
         int responseCode = conn.getResponseCode();
 
@@ -101,7 +103,7 @@ public class Crawler {
             break;
           }
 
-          System.out.println("parsing json of page " + i+ "...");
+          System.out.println("parsing json of page " + i + "...");
           JSONArray jsonArray = JSONArray.parseArray(data);
           for (Object object : jsonArray) {
             JSONObject jsonObject = (JSONObject) object;
@@ -123,22 +125,19 @@ public class Crawler {
 
         } else {
           System.out.println("Network issue: " + responseCode);
-          break;
+          return;
         }
-
       } catch (Exception e) {
         e.printStackTrace();
       }
-
     }
   }
 
   public void addComments(String commentsUrl, int issueId) {
     String data;
     try {
-      URL url = new URL(commentsUrl);
-      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-      conn.setRequestMethod("GET");
+      HttpURLConnection conn = Helper.getConnection(commentsUrl);
+      assert conn != null;
       conn.connect();
       int responseCode = conn.getResponseCode();
 
@@ -155,26 +154,34 @@ public class Crawler {
         for (Object object : jsonArray) {
           JSONObject jsonObject = (JSONObject) object;
           Integer id = (Integer) jsonObject.get("id");
-          String body = Helper.formatString((String) jsonObject.get("body"));
+          String body = (String) jsonObject.get("body");
 
           JSONObject user = (JSONObject) jsonObject.get("user");
           String userName = (String) user.get("login");
           Integer userId = (Integer) user.get("id");
           //插入developer
-          jdbcTemplate.execute(String.format("REPLACE INTO `developer` VALUES (%d, '%s');",
-              userId, userName));
+          jdbcTemplate.execute("REPLACE INTO `developer` VALUES (?, ?);",
+              (PreparedStatementCallback<Boolean>) ps -> {
+                ps.setInt(1, userId);
+                ps.setString(2, userName);
+                return ps.execute();
+              });
           //插入comment
-          jdbcTemplate.execute(
-              String.format("REPLACE INTO comment VALUES (%d, %d, %d, %s)", id, issueId, userId,
-                  body));
+          jdbcTemplate.execute("REPLACE INTO comment VALUES (?, ?, ?, ?)",
+              (PreparedStatementCallback<Boolean>) ps -> {
+                ps.setInt(1, id);
+                ps.setInt(2, issueId);
+                ps.setInt(3, userId);
+                ps.setString(4, body);
+                return ps.execute();
+              });
         }
-
       } else {
         System.out.println("Network issue: " + responseCode);
       }
-
     } catch (Exception e) {
       e.printStackTrace();
+      System.out.println(commentsUrl);
     }
   }
 
@@ -184,28 +191,43 @@ public class Crawler {
     Integer contributions = (Integer) jsonObject.get("contributions");
 
     jdbcTemplate.execute(
-        String.format("REPLACE INTO `developer` VALUES (%d, '%s');",
-            id, name));
+        "REPLACE INTO `developer` VALUES (?, ?);", (PreparedStatementCallback<Boolean>) ps -> {
+          ps.setInt(1, id);
+          ps.setString(2, name);
+          return ps.execute();
+        });
     jdbcTemplate.execute(
-        String.format("REPLACE INTO repository VALUES ('%s', %d, %d);", repoName, id,
-            contributions));
+        "REPLACE INTO repository VALUES (?, ?, ?);", (PreparedStatementCallback<Boolean>) ps -> {
+          ps.setString(1, repoName);
+          ps.setInt(2, id);
+          ps.setInt(3, contributions);
+          return ps.execute();
+        });
   }
 
   private void handleIssues(JSONObject jsonObject) {
     String repo = Helper.getRepo((String) jsonObject.get("url"));
     Integer id = (Integer) jsonObject.get("id");
-    String title = Helper.formatString((String) jsonObject.get("title"));
-    String state = Helper.formatString((String) jsonObject.get("state"));
+    String title = (String) jsonObject.get("title");
+    String state = (String) jsonObject.get("state");
     String createdTime = Helper.formatTime((String) jsonObject.get("created_at"));
     String closedTime = Helper.formatTime((String) jsonObject.get("closed_at"));
-    String body = Helper.formatString((String) jsonObject.get("body"));
-    System.out.println(body.length());
+    String body = (String) jsonObject.get("body");
 
-    jdbcTemplate.execute(
-        String.format("REPLACE INTO issue VALUES (%d, %s, %s, %s, %s, %s, '%s');", id, state,
-            createdTime, closedTime, title, body, repo));
-
+    jdbcTemplate.execute("REPLACE INTO issue VALUES (?, ?, ?, ?, ?, ?, ?);",
+        (PreparedStatementCallback<Boolean>) ps -> {
+          ps.setInt(1, id);
+          ps.setString(2, state);
+          ps.setString(3, createdTime);
+          ps.setString(4, closedTime);
+          ps.setString(5, title);
+          ps.setString(6, body);
+          ps.setString(7, repo);
+          return ps.execute();
+        });
+    //添加comments
     String commentsUrl = (String) jsonObject.get("comments_url");
+    System.out.println("parsing " + commentsUrl);
     addComments(commentsUrl, id);
   }
 
@@ -215,9 +237,14 @@ public class Crawler {
     String time = Helper.formatTime((String) jsonObject.get("created_at"));
     String repo = Helper.getRepo((String) jsonObject.get("url"));
 
-    jdbcTemplate.execute(String.format(
-        "REPLACE INTO `release` VALUES (%d, '%s', %s, '%s');", id,
-        name, time, repo));
+    jdbcTemplate.execute(
+        "REPLACE INTO `release` VALUES (?, ?, ?, ?);", (PreparedStatementCallback<Boolean>) ps -> {
+          ps.setInt(1, id);
+          ps.setString(2, name);
+          ps.setString(3, time);
+          ps.setString(4, repo);
+          return ps.execute();
+        });
   }
 
   private void handleCommits(JSONObject jsonObject) {
@@ -229,14 +256,35 @@ public class Crawler {
     String date = Helper.formatTime((String) author.get("date"));
     // 执行插入语句
     jdbcTemplate.execute(
-        String.format("REPLACE INTO `commit` VALUES ('%s', %s, '%s');",
-            sha, date, repo));
+        "REPLACE INTO `commit` VALUES (?, ?, ?);", (PreparedStatementCallback<Boolean>) ps -> {
+          ps.setString(1, sha);
+          ps.setString(2, date);
+          ps.setString(3, repo);
+          return ps.execute();
+        });
   }
 
   public void Test() {
-    jdbcTemplate.execute(
-        String.format("REPLACE INTO issue VALUES (%d, %s, %s,%s,%s,%s,%s);",
-            2, "'close'", "'2021-12-13 12:34:57'", null, "'title'", "'body'", "'repo'"));
+    int id = 2;
+    String state = "close";
+    String createdTime = "2021-12-13 12:34:57";
+    String closedTime = null;
+    String title = "ssdda";
+    String body = null;
+    String repo = "repo";
+//    jdbcTemplate.execute(
+//        "REPLACE INTO issue VALUES (?, ?, ?,?,?,?,?);", (PreparedStatementCallback<Boolean>) ps  -> {
+//          ps.setInt(1, id);
+//          ps.setString(2, state);
+//          ps.setString(3, createdTime);
+//          ps.setString(4, closedTime);
+//          ps.setString(5, title);
+//          ps.setString(6, body);
+//          ps.setString(7, repo);
+//          return ps.execute();
+//        });
+
+//            2, "'close'", "'2021-12-13 12:34:57'", null, "'title'", "'body'", "'repo'"));
   }
 
 }
